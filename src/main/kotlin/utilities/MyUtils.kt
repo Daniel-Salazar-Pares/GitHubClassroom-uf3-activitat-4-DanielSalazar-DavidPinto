@@ -35,8 +35,7 @@ fun stringLine(m1:String):String {
     return sc.nextLine()
 }
 
-fun intSize(size:Int ,m1:String):String {
-    println(m1)
+fun intSize(size:Int ,m1:String):Int {
     var input:Int
     do {
         while (!sc.hasNextInt()) {
@@ -46,7 +45,7 @@ fun intSize(size:Int ,m1:String):String {
         input = sc.nextInt()
         sc.nextLine()
     }while (input.toString().length > size)
-    return input.toString()
+    return input
 }
 
 fun int(m1:String) :Int {
