@@ -169,33 +169,31 @@ fun opcio5(file: File) {
     fileReader.close()
 
     if (c != null) {
-        val fileWriter = DataOutputStream(FileOutputStream(file,false))
         val fileWriterTemp = DataOutputStream(FileOutputStream("./temp.dat",true))
         try {
             fileReader = DataInputStream(FileInputStream(file))
             while (true) {
                 val newClient = readClient(fileReader)
-                if (newClient.getCodi() != c.getCodi())  {
-                    fileWriterTemp.writeInt(c.getCodi())
-                    fileWriterTemp.writeUTF(c.getNom())
-                    fileWriterTemp.writeUTF(c.getCognoms())
-                    fileWriterTemp.writeInt(c.getDia())
-                    fileWriterTemp.writeInt(c.getMes())
-                    fileWriterTemp.writeInt(c.getAny())
-                    fileWriterTemp.writeUTF(c.getAdrecaPostal())
-                    fileWriterTemp.writeUTF(c.getEmail())
-                    fileWriterTemp.writeBoolean(c.isEsVIP())
+                if (newClient.getCodi() != newClient.getCodi())  {
+                    fileWriterTemp.writeInt(newClient.getCodi())
+                    fileWriterTemp.writeUTF(newClient.getNom())
+                    fileWriterTemp.writeUTF(newClient.getCognoms())
+                    fileWriterTemp.writeInt(newClient.getDia())
+                    fileWriterTemp.writeInt(newClient.getMes())
+                    fileWriterTemp.writeInt(newClient.getAny())
+                    fileWriterTemp.writeUTF(newClient.getAdrecaPostal())
+                    fileWriterTemp.writeUTF(newClient.getEmail())
+                    fileWriterTemp.writeBoolean(newClient.isEsVIP())
                 }
             }
         }catch (_:Exception){} finally {
             fileWriterTemp.flush()
             fileWriterTemp.close()
             fileReader.close()
-            fileWriter.writeUTF("")
-            fileWriter.flush()
-            fileWriter.close()
+            file.delete()
         }
-        tempToFIle(File("./temp.dat"))
+
+        tempToFIle(file)
     }
 }
 

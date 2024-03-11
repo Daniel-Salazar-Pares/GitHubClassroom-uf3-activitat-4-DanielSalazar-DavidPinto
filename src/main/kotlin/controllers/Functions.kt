@@ -26,7 +26,7 @@ fun tempToFIle(file: File) {
         fileWriter.flush()
         fileWriter.close()
         fileReaderTemp.close()
-        file.delete()
+        File("./temp.dat").delete()
     }
 }
 
