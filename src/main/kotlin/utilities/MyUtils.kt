@@ -9,6 +9,7 @@ fun intRange(rango:IntRange,m1:String) :Int {
     do {
         while (!sc.hasNextInt()) {
             println(m1)
+            sc.nextLine()
         }
         input = sc.nextInt()
         sc.nextLine()
@@ -22,6 +23,7 @@ fun stringSize(size:Int ,m1:String):String {
     do {
         while (!sc.hasNextLine()) {
             println(m1)
+            sc.next()
         }
         input = sc.nextLine()
     }while (input.length > size)
@@ -35,6 +37,21 @@ fun stringLine(m1:String):String {
     return sc.nextLine()
 }
 
+fun stringLine(m1:String, size: Int):String {
+    var input: String
+    do {
+        while (!sc.hasNextLine()) {
+            println(m1)
+            sc.next()
+        }
+        input = sc.nextLine()
+        if (input.length > size) {
+            println(m1)
+        }
+    } while (input.length > size)
+    return input.padEnd(size, ' ')
+}
+
 fun intSize(size:Int ,m1:String):Int {
     var input:Int
     do {
@@ -44,6 +61,9 @@ fun intSize(size:Int ,m1:String):Int {
         }
         input = sc.nextInt()
         sc.nextLine()
+        if (input.toString().length > size) {
+            println(m1)
+        }
     }while (input.toString().length > size)
     return input
 }

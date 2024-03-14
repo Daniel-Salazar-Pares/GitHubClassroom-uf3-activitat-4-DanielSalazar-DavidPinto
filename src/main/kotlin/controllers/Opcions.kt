@@ -1,211 +1,147 @@
 package controllers
 
-import models.Client
-import utilities.boolean
+import org.example.controllers.mapaCodisAPosicions
 import utilities.*
 import java.io.*
 
-fun opcio1(file: File) {
-    val fileWriter = DataOutputStream(FileOutputStream(file,true))
-
+fun opcio1(file: File, fileMap: File) {
+    val fileWriter = RandomAccessFile(file, "rw")
+    val posicioInicial = fileWriter.length()
     println("**Alta d’un client**")
+
     println("Digues el codi de l'usuari: ")
-    fileWriter.writeInt(int("Prova un altre cop: "))
+    val codi = int("Prova un altre cop: ")
+    fileWriter.seek(posicioInicial)
+    fileWriter.writeInt(codi)
 
     println("Digues el nom de l'usuari: ")
-    fileWriter.writeUTF(stringLine("Prova un altre cop: "))
+    val nom = stringLine("Prova un altre cop (longitud maxima 20 caracters): ", 20)
+    fileWriter.writeChars(nom.padEnd(20, ' '))
 
-    println("Digues el cognoms de l'usuari: ")
-    fileWriter.writeUTF(stringLine("Prova un altre cop: "))
+    println("Digues els cognoms de l'usuari: ")
+    val cognoms = stringLine("Prova un altre cop (longitud maxima 50 caracters): ", 50)
+    fileWriter.writeChars(cognoms.padEnd(50, ' '))
 
     println("Digues el dia de naixement de l'usuari: ")
-    fileWriter.writeInt(intSize(2,"Prova un altre cop: "))
+    fileWriter.writeInt(intSize(2, "Prova un altre cop: "))
     println("Digues el mes de naixement de l'usuari: ")
-    fileWriter.writeInt(intSize(2,"Prova un altre cop: "))
+    fileWriter.writeInt(intSize(2, "Prova un altre cop: "))
     println("Digues el any de naixement de l'usuari: ")
-    fileWriter.writeInt(intSize(4,"Prova un altre cop: "))
-
+    fileWriter.writeInt(intSize(4, "Prova un altre cop: "))
 
     println("Digues l'adreça postal de l'usuari: ")
-    fileWriter.writeUTF(stringLine("Prova un altre cop: "))
+    val adrecaPostal = stringLine("Prova un altre cop (longitud maxima 5 caracters): ", 5)
+    fileWriter.writeChars(adrecaPostal.padEnd(5, ' '))
 
     println("Digues el e-mail de l'usuari: ")
-    fileWriter.writeUTF(stringLine("Prova un altre cop: "))
+    val email = stringLine("Prova un altre cop (longitud maxima 50 caracters): ", 50)
+    fileWriter.writeChars(email.padEnd(50, ' '))
 
     println("Digues si l'usuari es vip: ")
     fileWriter.writeBoolean(boolean("Prova un altre cop: "))
 
-    fileWriter.flush()
+    mapaCodisAPosicions[codi] = posicioInicial
     fileWriter.close()
+    actualizarArchiuMapa(codi, posicioInicial, fileMap)
 }
 
 fun opcio2(file: File) {
     println("**Consulta d’un client per posició**")
-    val fileReader = DataInputStream(FileInputStream(file))
+
     println("Digues la posició del client: ")
     val pos = int("Prova un altre cop: ")
-    try {
-        var c = Client(0,"","",0,0,0,"","",false)
-        repeat(pos) {
-            c = readClient(fileReader)
+
+    val midaRegistre = 267
+
+    DataInputStream(FileInputStream(file)).use { fileReader ->
+        try {
+            val desplacament = (pos - 1) * midaRegistre.toLong()
+
+            if (desplacament < file.length()) {
+                fileReader.skip(desplacament)
+
+                val c = readClient(fileReader)
+                println("Client trobat:")
+                println("Codi: ${c.getCodi()}, Nom: ${c.getNom()}, Cognom: ${c.getCognoms()}, Data naixement: ${c.getDia()}/${c.getMes()}/${c.getAny()}, Adreça postal: ${c.getAdrecaPostal()}, E-mail: ${c.getEmail()}, Es vip: ${c.isEsVIP()}")
+            } else {
+                println("La posció no existeix")
+            }
+        } catch (e: IOException) {
+            println("Error al llegir l'arxiu: ${e.message}")
         }
-        println("Codi: ${c.getCodi()}, Nom: ${c.getNom()}, Cognom: ${c.getCognoms()}, Data naixement: ${c.getDia()}/${c.getMes()}/${c.getAny()}, Adreça postal: ${c.getAdrecaPostal()}, E-mail: ${c.getEmail()}, Es vip: ${c.isEsVIP()}")
-    } catch (e:Exception) {
-        println("No hi ha un usuari a la posició $pos")
     }
-    fileReader.close()
+
 }
 
 fun opcio3(file: File) {
     println("**Consulta d’un client per codi**")
-    val fileReader = DataInputStream(FileInputStream(file))
-    val c = buscarPerCodi(fileReader)
-    if (c != null) {
-        println("Codi: ${c.getCodi()}, Nom: ${c.getNom()}, Cognom: ${c.getCognoms()}, Data naixement: ${c.getDia()}/${c.getMes()}/${c.getAny()}, Adreça postal: ${c.getAdrecaPostal()}, E-mail: ${c.getEmail()}, Es vip: ${c.isEsVIP()}")
-    }
-
-    fileReader.close()
+    busquedaPerCodi(file)
 }
 
 fun opcio4(file: File) {
     println("**Modificar un client**")
-
-    val tempFile = File(file.parentFile, "temp.dat")
-
-    val fileReader = DataInputStream(FileInputStream(file))
-    val fileWriterTemp = DataOutputStream(FileOutputStream(tempFile))
-
-    try {
-        println("Digues el codi del client a modificar: ")
-        val codiModificar = int("Introdueix un codi vàlid: ")
-        var clienteEncontrado = false
-
-        var finDeArchivo = false
-        while (!finDeArchivo) {
-            try {
-                val client = readClient(fileReader)
-                if (client.getCodi() == codiModificar) {
-                    println("Quina informació vols modificar?")
-                    println("1- Nom")
-                    println("2- Cognoms")
-                    println("3- Dia de naixement")
-                    println("4- Mes de naixement")
-                    println("5- Any de naixement")
-                    println("6- Adreça postal")
-                    println("7- E-mail")
-                    println("8- Es VIP")
-                    var cambi = intRange(1..8,"Prova un altre cop: ")
-                    when (cambi) {
-                        1 -> {
-                            println("Nom actual (${client.getNom()}), introduir nou nom: ")
-                            val nuevoNombre = stringLine("Prova un altre cop: ")
-                            client.setNom(nuevoNombre)
-                        }
-                        2 -> {
-                            println("Cognom actual (${client.getCognoms()}), introduir nou cognom: ")
-                            val nuevoCognom = stringLine("Prova un altre cop: ")
-                            client.setCognoms(nuevoCognom)
-                        }
-                        3 -> {
-                            println("Dia de naixement actual (${client.getDia()}), introduir nou dia: ")
-                            val nuevoDia = intSize(2,"Prova un altre cop: ")
-                            client.setDia(nuevoDia)
-                        }
-                        4 -> {
-                            println("Mes de naixement actual (${client.getMes()}), introduir nou mes: ")
-                            val nuevoMes = intSize(2,"Prova un altre cop: ")
-                            client.setMes(nuevoMes)
-                        }
-                        5 -> {
-                            println("Any de naixement actual (${client.getAny()}), introduir nou any: ")
-                            val nuevoAny = intSize(4,"Prova un altre cop: ")
-                            client.setAny(nuevoAny)
-                        }
-                        6 -> {
-                            println("Adreça postal actual (${client.getAdrecaPostal()}), introduir nova adreça: ")
-                            val nuevaAdreca = stringLine("Prova un altre cop: ")
-                            client.setAdrecaPostal(nuevaAdreca)
-                        }
-                        7 -> {
-                            println("E-mail actual (${client.getEmail()}), introduir nou e-mail: ")
-                            val nuevoEmail = stringLine("Prova un altre cop: ")
-                            client.setEmail(nuevoEmail)
-                        }
-                        8 -> {
-                            println("Es VIP actual (${client.isEsVIP()}), introduir nou valor: ")
-                            val nuevoVIP = boolean("Prova un altre cop: ")
-                            client.setEsVIP(nuevoVIP)
-                        }
-                    }
-                    writeClient(fileWriterTemp, client)
-                    clienteEncontrado = true
-                } else {
-                    writeClient(fileWriterTemp, client)
-                }
-            } catch (_: EOFException) {
-                finDeArchivo = true
-            }
-        }
-
-        if (!clienteEncontrado) {
-            println("No s'ha trobat cap client amb el codi $codiModificar")
-        }
-    } finally {
-        fileReader.close()
-        fileWriterTemp.flush()
-        fileWriterTemp.close()
+    //no funciona be
+    /*
+    println("Digues el codi del client: ")
+    val codiBuscat = int("Prova un altre cop: ")
+    busquedaPerCodi(file, codiBuscat)
+    println("Quin camp vols modificar?")
+    println("1. Nom")
+    println("2. Cognoms")
+    println("3. Data naixement")
+    println("4. Adreça postal")
+    println("5. E-mail")
+    println("6. Es VIP")
+    val opcio = intRange(1..6, "Prova un altre cop: ")
+    when (opcio) {
+        1 -> nom(file, codiBuscat)
+        2 -> cognoms(file, codiBuscat)
+        3 -> data(file, codiBuscat)
+        4 -> adrecaPostal(file, codiBuscat)
+        5 -> eMail(file, codiBuscat)
+        6 -> vip(file, codiBuscat)
+        else -> println("Opció no vàlida")
     }
 
-    if (!file.exists() || (file.delete() && tempFile.renameTo(file))) {
-        println("Client modificat correctament")
+     */
+
+}
+
+fun opcio5(file: File, fileMap: File) {
+    println("**Esborrar un client**")
+    println("Digues el codi del client: ")
+    val codiBuscat = int("Prova un altre cop: ")
+    val posicio = mapaCodisAPosicions[codiBuscat]
+    if (posicio != null) {
+        RandomAccessFile(file, "rw").use { raf ->
+            raf.seek(posicio)
+            val client = readClient(DataInputStream(FileInputStream(raf.fd)))
+            println("Codi: ${client.getCodi()}, Nom: ${client.getNom()}, Cognom: ${client.getCognoms()}, Data naixement: ${client.getDia()}/${client.getMes()}/${client.getAny()}, Adreça postal: ${client.getAdrecaPostal()}, E-mail: ${client.getEmail()}, Es vip: ${client.isEsVIP()}")
+            mapaCodisAPosicions.remove(codiBuscat)
+            raf.seek(posicio)
+            raf.writeBoolean(false)
+            println("Client esborrat correctament")
+            actualizarMapaEliminar(codiBuscat, posicio, 267)
+            actualizarArchiuMapaEliminar(fileMap)
+        }
     } else {
-        println("Error al modificar el client")
+        println("No s'ha trobat cap client amb el codi $codiBuscat.")
     }
+
 }
-
-fun opcio5(file: File) {
-    var fileReader = DataInputStream(FileInputStream(file))
-    val c = buscarPerCodi(fileReader)
-    fileReader.close()
-
-    if (c != null) {
-        val fileWriterTemp = DataOutputStream(FileOutputStream("./temp.dat",true))
-        try {
-            fileReader = DataInputStream(FileInputStream(file))
-            while (true) {
-                val newClient = readClient(fileReader)
-                if (newClient.getCodi() != newClient.getCodi())  {
-                    fileWriterTemp.writeInt(newClient.getCodi())
-                    fileWriterTemp.writeUTF(newClient.getNom())
-                    fileWriterTemp.writeUTF(newClient.getCognoms())
-                    fileWriterTemp.writeInt(newClient.getDia())
-                    fileWriterTemp.writeInt(newClient.getMes())
-                    fileWriterTemp.writeInt(newClient.getAny())
-                    fileWriterTemp.writeUTF(newClient.getAdrecaPostal())
-                    fileWriterTemp.writeUTF(newClient.getEmail())
-                    fileWriterTemp.writeBoolean(newClient.isEsVIP())
-                }
-            }
-        }catch (_:Exception){} finally {
-            fileWriterTemp.flush()
-            fileWriterTemp.close()
-            fileReader.close()
-            file.delete()
-        }
-
-        tempToFIle(file)
-    }
-}
-
 
 fun opcio6(file: File) {
     println("**Llistat de tots els clients**")
-    val fileReader = DataInputStream(FileInputStream(file))
-    try {
-        while (true) {
-            val c = readClient(fileReader)
-            println("Codi: ${c.getCodi()}, Nom: ${c.getNom()}, Cognom: ${c.getCognoms()}, Data naixement: ${c.getDia()}/${c.getMes()}/${c.getAny()}, Adreça postal: ${c.getAdrecaPostal()}, E-mail: ${c.getEmail()}, Es vip: ${c.isEsVIP()}")
+    val codisOrdenats = mapaCodisAPosicions.keys.sortedWith(compareBy { it })
+    RandomAccessFile(file, "r").use { raf ->
+        for (codi in codisOrdenats) {
+            val posicio = mapaCodisAPosicions[codi]
+            if (posicio != null) {
+                raf.seek(posicio)
+                val client = readClient(DataInputStream(FileInputStream(raf.fd)))
+                println("Codi: ${client.getCodi()}, Nom: ${client.getNom()}, Cognom: ${client.getCognoms()}, Data naixement: ${client.getDia()}/${client.getMes()}/${client.getAny()}, Adreça postal: ${client.getAdrecaPostal()}, E-mail: ${client.getEmail()}, Es vip: ${client.isEsVIP()}")
+            }
         }
-    } catch (_:Exception) {}
-    fileReader.close()
+    }
 }
+

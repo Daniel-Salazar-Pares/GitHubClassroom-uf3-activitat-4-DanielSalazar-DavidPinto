@@ -1,36 +1,34 @@
 package org.example.controllers
 
 import controllers.*
-import models.Client
 import utilities.*
 import java.io.*
 
+var mapaCodisAPosicions = mutableMapOf<Int, Long>()
 fun main() {
-    ex2(File("./clients.dat"))
+    if (!File("./clients.dat").exists()) {
+        val fileWriter = DataOutputStream(FileOutputStream(File("./clients.dat")))
+        fileWriter.close()
+    }
+
+    if (!File("./mapaCodisAPosicions.txt").exists()) {
+        val fileWriter = DataOutputStream(FileOutputStream(File("./mapaCodisAPosicions.txt")))
+        fileWriter.close()
+    }
+    mapaCodisAPosicions = cargarMapaDesDeArchiu(File("./mapaCodisAPosicions.txt"))
+    gestioDeClients(File("./clients.dat"), File("./mapaCodisAPosicions.txt"))
 }
 
-fun ex1(file:File) {
-    val fileWriter = DataOutputStream(FileOutputStream(file))
-    do {
-        println("Digues un numero: ")
-        val input = int("Prova un altre cop: ")
-        if (input != 0) {
-            fileWriter.writeInt(input)
-        }
-    }while(input != 0)
-    fileWriter.flush()
-    fileWriter.close()
-}
 
-fun ex2(file:File) {
+fun gestioDeClients(file:File, fileMap:File) {
     do {
         val opcion = menu()
         when (opcion) {
-            1 -> opcio1(file)
+            1 -> opcio1(file, fileMap)
             2 -> opcio2(file)
             3 -> opcio3(file)
             4 -> opcio4(file)
-            5 -> opcio5(file)
+            5 -> opcio5(file, fileMap)
             6 -> opcio6(file)
         }
     } while (opcion != 7)
