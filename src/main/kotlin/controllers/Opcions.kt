@@ -81,7 +81,6 @@ fun opcio3(file: File) {
 fun opcio4(file: File) {
     println("**Modificar un client**")
     //no funciona be
-    /*
     println("Digues el codi del client: ")
     val codiBuscat = int("Prova un altre cop: ")
     busquedaPerCodi(file, codiBuscat)
@@ -102,9 +101,6 @@ fun opcio4(file: File) {
         6 -> vip(file, codiBuscat)
         else -> println("Opció no vàlida")
     }
-
-     */
-
 }
 
 fun opcio5(file: File, fileMap: File) {
